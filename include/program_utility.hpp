@@ -17,6 +17,7 @@ namespace program_utility
     using file_utility::read_iterator;
     using file_utility::write_iterator;
 
+
     struct encode_tag;
     struct decode_tag;
     struct text_tag;
@@ -37,10 +38,10 @@ namespace program_utility
             std::ifstream i_file {i_path, std::ifstream::binary};
             std::ofstream o_file {o_path, std::ofstream::binary};
 
-            file_utility::encode_file( i_file
-                                     , o_file
-                                     , msg
-                                     , policy );
+            encode_file( i_file
+                       , o_file
+                       , msg
+                       , policy );
         }
     };
 
@@ -60,11 +61,11 @@ namespace program_utility
             auto src_size = src_file.tellg();
             src_file.seekg( 0, std::istream::beg );
 
-            file_utility::encode_file_n( i_file
-                                       , o_file
-                                       , read_iterator <char> {src_file}
-                                       , src_size
-                                       , policy );
+            encode_file_n( i_file
+                         , o_file
+                         , read_iterator <uint8_t> {src_file}
+                         , src_size
+                         , policy );
         }
     };
 
@@ -76,9 +77,9 @@ namespace program_utility
 
         void operator ()() const
         {
-            std::ifstream i_file   {i_path, std::ifstream::binary};
+            std::ifstream i_file {i_path, std::ifstream::binary};
 
-            auto msg = file_utility::decode_file( i_file, policy );
+            auto msg = decode_file( i_file, policy );
 
             std::cout << std::quoted( msg );
         }
@@ -95,9 +96,9 @@ namespace program_utility
             std::ifstream i_file {i_path, std::ifstream::binary};
             std::ofstream o_file {o_path, std::ofstream::binary};
 
-            file_utility::decode_file <char> ( i_file
-                                             , write_iterator <char> {o_file}
-                                             , policy );
+            decode_file <uint8_t> ( i_file
+                                  , write_iterator <uint8_t> {o_file}
+                                  , policy );
         }
     };
 }
@@ -107,7 +108,6 @@ namespace program_utility
 #include <variant>
 #include <map>
 #include <functional>
-
 
 namespace cmd_utility
 {
@@ -168,12 +168,14 @@ namespace cmd_utility
     {
     public :
 
-        program_config (int argn, char **args)
+        template <class InIt>
+        program_config (size_t argn, InIt args)
         {
             parse( argn, args );
         }
 
-        void parse (int argn, char **args)
+        template <class InIt>
+        void parse (size_t argn, InIt args)
         {
             for(auto first = next( args ), last = next( args, argn ) ; first != last; ++first)
             {
