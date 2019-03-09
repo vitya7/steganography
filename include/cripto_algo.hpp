@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iterator>
+#include <type_traits>
 
 namespace steganography
 {
@@ -40,15 +41,16 @@ namespace steganography
     /*
         encode value
     */
-    template <class T, class InIt, class OutIt, class Policy>
-    OutIt encode (T value, InIt first, OutIt result, Policy const& policy)
+    template <class Tp, class InIt, class OutIt, class Policy>
+    OutIt encode (Tp value, InIt first, OutIt result, Policy const& policy)
     {
-        using U = typename std::iterator_traits <InIt> :: value_type;
+        using T = std::make_unsigned_t <Tp>;
+        using U = std::make_unsigned_t <typename std::iterator_traits <InIt> :: value_type>;
 
         const auto n = policy.encoded_bits_per_byte;
 
-        const T mask     =  fill_n_bit <T> ( n );
-        const U mask_del = ~fill_n_bit <U> ( n );
+        const auto mask     =  fill_n_bit <T> ( n );
+        const auto mask_del = ~fill_n_bit <U> ( n );
 
         auto iter_num = sizeof_encoded <T> ( n );
 
@@ -101,14 +103,16 @@ namespace steganography
     /*
         decode value of type T
     */
-    template <class T, class InIt, class Policy>
-    T decode (InIt first, Policy const& policy)
+    template <class Tp, class InIt, class Policy>
+    Tp decode (InIt first, Policy const& policy)
     {
-        using U = typename std::iterator_traits <InIt> :: value_type;
+        using T = std::make_unsigned_t <Tp>;
+        using U = std::make_unsigned_t <typename std::iterator_traits <InIt> :: value_type>;
 
         const auto n = policy.encoded_bits_per_byte;
 
-        const U mask = fill_n_bit <U> ( n );
+        const auto mask = fill_n_bit <U> ( n );
+
         auto iter_num = sizeof_encoded <T> ( n );
 
         T value = *first & mask;
